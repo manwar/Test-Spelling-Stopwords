@@ -12,7 +12,7 @@
 ## The Problem
 
 Standard POD spell-checking with `Test::Spelling` requires you to manually
-maintain a list of project-specific words — either hardcoded in `__DATA__`
+maintain a list of project-specific words - either hardcoded in `__DATA__`
 or passed to `add_stopwords()` in every test file. This means:
 
 - Every project carries its own hand-curated word list
@@ -51,7 +51,7 @@ must be available on your system (see [Requirements](#requirements)).
 Run once from your project root:
 
 ```bash
-gen-stopwords
+gen-stopwords -v
 ```
 
 This scans `lib/`, `bin/`, and `script/` by default, runs `aspell` on every
