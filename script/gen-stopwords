@@ -346,7 +346,7 @@ sub write_stopwords {
 
 check_aspell();
 
-info("gen-stopwords $VERSION");
+info("gen-stopwords v$VERSION");
 info("Language : $opt{lang}");
 info("Output   : $opt{output}");
 info("Dirs     : " . join(', ', @{ $opt{dirs} }));
