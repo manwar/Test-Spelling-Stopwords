@@ -1,6 +1,6 @@
 package Test::Spelling::Stopwords;
 
-$Test::Spelling::Stopwords::VERSION   = '0.02';
+$Test::Spelling::Stopwords::VERSION   = '0.01';
 $Test::Spelling::Stopwords::AUTHORITY = 'cpan:MANWAR';
 
 use strict;
@@ -27,7 +27,7 @@ Test::Spelling::Stopwords - POD spell-checking with project-specific stopwords
 
 =head1 VERSION
 
-Version 0.02
+Version 0.01
 
 =head1 SYNOPSIS
 
