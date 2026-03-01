@@ -1,0 +1,8 @@
+Changes
+lib/Test/Spelling/Stopwords.pm
+LICENSE
+Makefile.PL
+MANIFEST
+MANIFEST.SKIP
+script/gen-stopwords
+t/00-load.t
