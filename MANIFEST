@@ -1,8 +1,13 @@
 Changes
 lib/Test/Spelling/Stopwords.pm
 LICENSE
+README.md
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
 script/gen-stopwords
 t/00-load.t
+t/spell-pod.t
+t/manifest.t
+t/pod.t
+.stopwords

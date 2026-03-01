@@ -1,5 +1,14 @@
 Revision history for Test::Spelling::Stopwords
 
+0.02 2026-03-01
+     [UNIT TESTS]
+     - Added standard unit tests (t/pod.t and t/manifest.t)
+     - Added t/spell-pod.t to try its own medicine.
+     - Added project .stopwords file.
+
+     [POD]
+     - Tidied up pod to make unit test happy.
+
 0.01 2026-03-01
      [Initial Release]
       - POD spell-checking with automatic project-specific stopword discovery.
