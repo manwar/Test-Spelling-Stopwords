@@ -29,7 +29,7 @@ runs `aspell`, and writes a `.stopwords` file containing *only*
 project-specific vocabulary - after filtering out the ~1000 common Perl
 terms already covered by [**Pod::Wordlist**](https://metacpan.org/pod/Pod::Wordlist).
 
-**2. `Test::Spelling::Stopwords`** — a test module that auto-discovers the
+**2. `Test::Spelling::Stopwords`** - a test module that auto-discovers the
 `.stopwords` file, loads it, and reports spelling failures with **exact line
 numbers** so you can find and fix them immediately.
 
@@ -59,7 +59,7 @@ This scans `lib/`, `bin/`, and `script/` by default, runs `aspell` on every
 `Pod::Wordlist`, and writes a lean `.stopwords` to your project root.
 
 ```
-gen-stopwords 0.1
+gen-stopwords v0.01
 Language : en_GB
 Output   : .stopwords
 Dirs     : .
