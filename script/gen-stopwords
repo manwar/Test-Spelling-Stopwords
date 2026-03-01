@@ -190,6 +190,32 @@ sub aspell_list {
 
 #
 #
+# Load Pod::Wordlist — the shared Perl community vocabulary
+
+sub load_pod_wordlist {
+    my $known = shift;
+
+    unless (eval 'require Pod::Wordlist; 1') {
+        warn_ "WARNING: Pod::Wordlist not found (cpanm Pod::Wordlist). "
+            . "Skipping — .stopwords may contain redundant common Perl terms.";
+        return 0;
+    }
+
+    # Pod::Wordlist stores its words in %Pod::Wordlist::Wordlist
+    my $wordlist = do { no strict 'refs'; \%{ 'Pod::Wordlist::Wordlist' } };
+
+    my $count = 0;
+    for my $word (keys %$wordlist) {
+        $known->{ lc $word } = 1;
+        $count++;
+    }
+
+    debug("  Loaded $count word(s) from Pod::Wordlist");
+    return $count;
+}
+
+#
+#
 # Load global personal wordlist (.aspell.en.pws)
 
 sub load_global_words {
@@ -221,17 +247,17 @@ sub load_global_words {
 # Scan source files and collect unrecognised words via aspell
 
 sub scan_project {
-    my ($dirs, $lang, $stop_file, $list) = @_;
+    my ($dirs, $lang, $stop_file, $known, $stopwords) = @_;
 
     my $stop_abs  = eval { abs_path($stop_file) } // $stop_file;
     my $processed = 0;
     my $skipped   = 0;
+    my $filtered  = 0;
 
     find({
         wanted => sub {
             my $name = $_;
 
-            # Prune unwanted directories
             if (-d $name && $name =~ $PRUNE_RE) {
                 $File::Find::prune = 1;
                 return;
@@ -239,7 +265,6 @@ sub scan_project {
 
             return unless -f $name && $name =~ $SOURCE_RE;
 
-            # Never process the output file itself
             my $abs = eval { abs_path($name) } // $name;
             if ($abs eq $stop_abs) {
                 $skipped++;
@@ -253,8 +278,7 @@ sub scan_project {
                 or do { warn_ "WARNING: Cannot open $File::Find::name: $!"; return };
 
             while (my $line = <$fh>) {
-                # Strip POD formatting codes entirely (E<gt>, L<...>, C<...>, etc.)
-                # Removing the whole tag prevents fragments like 'gt' or 'Egt' appearing.
+                # Strip POD formatting codes entirely — prevents 'Egt' artefacts
                 $line =~ s/[A-Z]<[^>]+>//g;
 
                 my $result = aspell_list($line, $lang);
@@ -264,10 +288,17 @@ sub scan_project {
                     $word =~ s/^\s+|\s+$//g;
                     next unless length($word) >= $opt{min_len};
 
-                    my $clean = lc($word);
-                    $clean =~ s/'s$//;    # strip possessive
+                    my $clean = lc $word;
+                    $clean =~ s/'s$//;
 
-                    $list->{$clean}++;
+                    # Skip if Pod::Wordlist or personal wordlist already covers it
+                    if ($known->{$clean}) {
+                        $filtered++;
+                        debug("    Skipping '$clean' (covered by Pod::Wordlist or personal wordlist)");
+                        next;
+                    }
+
+                    $stopwords->{$clean}++;
                 }
             }
 
@@ -276,7 +307,11 @@ sub scan_project {
         no_chdir => 0,
     }, @$dirs);
 
-    return ($processed, $skipped);
+    # Explicit return ensures we always hand back three defined integers.
+    # find() itself returns undef, so we must never let it be the implicit
+    # return value of this sub — that is what causes the "uninitialized"
+    # warning at the call site when $filtered is assigned from it.
+    return ($processed, $skipped, $filtered + 0);
 }
 
 #
@@ -311,27 +346,38 @@ sub write_stopwords {
 
 check_aspell();
 
-info("gen-stopwords v$VERSION");
+info("gen-stopwords $VERSION");
 info("Language : $opt{lang}");
 info("Output   : $opt{output}");
 info("Dirs     : " . join(', ', @{ $opt{dirs} }));
 
-my %merged;
+# %known     - words NOT to add (covered by Pod::Wordlist or personal wordlist)
+# %stopwords - words to write (project-specific only)
+my (%known, %stopwords);
 
-load_global_words($opt{pws}, \%merged);
+unless ($opt{no_wordlist}) {
+    info("Loading Pod::Wordlist...");
+    my $n = load_pod_wordlist(\%known);
+    info("  $n word(s) loaded — these will be filtered from output.") if $n;
+}
+
+load_global_words($opt{pws}, \%known);
 
 info("Scanning source files...");
-my ($processed, $skipped) = scan_project(
-    $opt{dirs}, $opt{lang}, $opt{output}, \%merged
+my ($processed, $skipped, $filtered) = scan_project(
+    $opt{dirs}, $opt{lang}, $opt{output}, \%known, \%stopwords
 );
 
-write_stopwords($opt{output}, $opt{lang}, \%merged);
+write_stopwords($opt{output}, $opt{lang}, \%stopwords);
 
 info(sprintf(
-    "Done. Scanned %d file(s), skipped %d. %s %d term(s) to %s.",
-    $processed, $skipped,
+    "Done. Scanned %d file(s), skipped %d, filtered %d already-known term(s).",
+    $processed, $skipped, $filtered,
+));
+info(sprintf(
+    "%s %d project-specific term(s) to %s.",
     $opt{dry_run} ? 'Would write' : 'Wrote',
-    scalar(keys %merged),
+    scalar(keys %stopwords),
     $opt{output},
 ));
 
