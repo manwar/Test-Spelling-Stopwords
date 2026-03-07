@@ -1,5 +1,9 @@
 Revision history for Test::Spelling::Stopwords
 
+0.03 2026-03-07
+     [IMPROVEMENTS]
+     - Added GitHub issues to Makefile.PL script.
+
 0.02 2026-03-01
      [UNIT TESTS]
      - Added standard unit tests (t/pod.t and t/manifest.t)

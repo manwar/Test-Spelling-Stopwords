@@ -41,6 +41,9 @@ WriteMakefile(
                 url  => 'https://github.com/manwar/Test-Spelling-Stopwords.git',
                 web  => 'https://github.com/manwar/Test-Spelling-Stopwords',
             },
+            bugtracker => {
+                web  => 'https://github.com/manwar/Test-Spelling-Stopwords/issues'
+            },
         }})
      : ()
     ),
